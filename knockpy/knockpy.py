@@ -14,6 +14,7 @@ import json
 import os.path
 import datetime
 import argparse
+import socket
 
 __author__='Gianni \'guelfoweb\' Amato'
 __version__='4.0'
@@ -82,6 +83,17 @@ def init(text, resp=False):
 	else:
 		print(text),
 
+def testUrl(url, ports):
+	openPorts = []
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	for port in ports.split(','):
+		print port
+		result = sock.connect_ex((url,int(port)))
+		if result == 0:
+			openPorts += port
+			print port
+
+
 def main():
 	parser = argparse.ArgumentParser(
 		version=__version__,
@@ -99,6 +111,8 @@ def main():
 						action='store_true', required=False)
 	parser.add_argument('-j', '--json', help='export full report in JSON',
 						action='store_true', required=False)
+	parser.add_argument('-p', '--ports', help='list of ports to test',
+						 required=False, type=str)
 
 	args = parser.parse_args()
 	
@@ -107,6 +121,7 @@ def main():
 	resolve_host = args.resolve
 	save_scan_csv = args.csv
 	save_scan_json = args.json
+	testPorts = args.ports
 
 	print_header()
 
@@ -258,6 +273,7 @@ def main():
 		
 		if items['hostname'] not in subdomain_found:
 			subdomain_found.append(str(items['hostname']))
+			testUrl(str(items['hostname']), testPorts)
 
 		for item in items['alias']:
 			if item not in subdomain_found:
