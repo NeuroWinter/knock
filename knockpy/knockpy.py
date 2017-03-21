@@ -59,10 +59,12 @@ def print_header_scan():
 	print '\nIp Address\tStatus\tType\tDomain Name'
 	print '----------\t------\t----\t-----------'
 
+openPorts = []
 subdomain_csv_list = []
 def print_output(data):
 	if data['alias']:
 		for alias in data['alias']:
+			print alias
 			ip_alias = data['ipaddress'][0]
 			row = ip_alias+'\t'+str(data['status'])+'\t'+'alias'+'\t'+str(alias)
 			print (row)
@@ -73,9 +75,10 @@ def print_output(data):
 			subdomain_csv_list.append(row.replace('\t', ','))
 	else:
 		for ip in data['ipaddress']:
-			row = ip+'\t'+str(data['status'])+'\t'+'host'+'\t'+str(data['hostname'])
+			row = ip+str(openPorts)+'\t'+str(data['status'])+'\t'+'host'+'\t'+str(data['hostname'])
 			print (row)
 			subdomain_csv_list.append(row.replace('\t', ','))
+	openPorts[:] = []
 
 def init(text, resp=False):
 	if resp:
@@ -84,15 +87,12 @@ def init(text, resp=False):
 		print(text),
 
 def testUrl(url, ports):
-	openPorts = []
+
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	for port in ports.split(','):
-		print port
 		result = sock.connect_ex((url,int(port)))
 		if result == 0:
-			openPorts += port
-			print port
-
+			openPorts.append(port)
 
 def main():
 	parser = argparse.ArgumentParser(
@@ -253,12 +253,15 @@ def main():
 					if content_length == '0' or str(content_length) == str(wildcard_content_length):
 						pass
 					else:
+						testUrl(str(subdomain_resolve['ipaddress'][0]), testPorts)
 						print_output(subdomain_resolve)
 						subdomains_json_list.append(subdomain_resolve)
 				else:
+					testUrl(str(subdomain_resolve['ipaddress'][0]), testPorts)
 					print_output(subdomain_resolve)
 					subdomains_json_list.append(subdomain_resolve)
 			else:
+				testUrl(str(subdomain_resolve['ipaddress'][0]), testPorts)
 				print_output(subdomain_resolve)
 				subdomains_json_list.append(subdomain_resolve)		
 		sys.stdout.write("%s\r" % ('                               ') )
@@ -273,7 +276,7 @@ def main():
 		
 		if items['hostname'] not in subdomain_found:
 			subdomain_found.append(str(items['hostname']))
-			testUrl(str(items['hostname']), testPorts)
+
 
 		for item in items['alias']:
 			if item not in subdomain_found:
